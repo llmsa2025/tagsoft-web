@@ -1,73 +1,57 @@
-// components/ContainerLayout.jsx
+// componentes/ContainerLayout.jsx
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import { API_URL, API_KEY, mask, health } from '../lib/api';
 
-function SideItem({ href, label, icon, active }) {
-  return (
-    <Link href={href} style={{
-      display:'flex', alignItems:'center', gap:8, padding:'10px 12px',
-      borderRadius:10, textDecoration:'none',
-      background: active ? '#0f172a' : 'transparent',
-      color: active ? '#fff' : '#0f172a', fontWeight: active ? 600 : 500
-    }}>
-      <span>{icon}</span><span>{label}</span>
+export default function ContainerLayout({ cid, active = 'overview', children }) {
+  const Item = ({ id, href, children }) => (
+    <Link
+      href={href}
+      style={{
+        display: 'block',
+        padding: '10px 12px',
+        borderRadius: 10,
+        margin: '6px 0',
+        background: active === id ? '#0f172a' : '#fff',
+        color: active === id ? '#fff' : '#0f172a',
+        textDecoration: 'none',
+        border: '1px solid #e5e7eb',
+      }}
+    >
+      {children}
     </Link>
   );
-}
-
-export default function ContainerLayout({ cid, active, children }) {
-  const [apiHealthy, setApiHealthy] = useState(null);
-  const [apiError, setApiError] = useState('');
-  const apiInfo = useMemo(() => ({ API_URL, API_KEY_MASKED: mask(API_KEY) }), []);
-
-  useEffect(() => { (async()=>{ try{ await health(); setApiHealthy(true);}catch(e){ setApiHealthy(false); setApiError(e.message);} })(); }, []);
-
-  const base = `/containers/${encodeURIComponent(cid || 'new')}`;
 
   return (
-    <div style={{ minHeight:'100vh', background:'#fafafa', color:'#0f172a' }}>
-      <header style={{height:56,display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 16px',borderBottom:'1px solid #e5e7eb',background:'#fff'}}>
-        <div style={{display:'flex',alignItems:'center',gap:12}}>
-          <div style={{ width:24, height:24, borderRadius:6, background:'#111' }}/>
-          <div>
-            <div style={{ fontWeight:700 }}>TagSoft — STM v1.0</div>
-            <div style={{ fontSize:12, opacity:.7 }}>
-              Container: <b>{cid || 'novo'}</b> — <Link href="/containers" style={{ textDecoration:'none' }}>voltar para lista</Link>
-            </div>
-          </div>
-        </div>
-        <div style={{ fontSize:12 }}>
-          API: <code>{apiInfo.API_URL}</code> — key: <code>{apiInfo.API_KEY_MASKED}</code> — status: {apiHealthy===null?'checando…':apiHealthy?'🟢 online':'🔴 offline'}
-          {!apiHealthy && apiError ? <span style={{ color:'#b00' }}> — {apiError}</span> : null}
-        </div>
-      </header>
-
-      <div style={{ display:'grid', gridTemplateColumns:'260px 1fr', gap:16, maxWidth:1200, margin:'0 auto', padding:16 }}>
-        <aside style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:8 }}>
-          <SideItem href={`${base}`}                   label="Visão geral"  icon="📋" active={active==='overview'} />
-          <SideItem href={`${base}/tags`}             label="Tags"         icon="🧩" active={active==='tags'} />
-          <SideItem href={`${base}/triggers`}         label="Acionadores"  icon="⏱️" active={active==='triggers'} />
-          <SideItem href={`${base}/variables`}        label="Variáveis"    icon="🔗" active={active==='variables'} />
-          <SideItem href={`${base}/folders`}          label="Pastas"       icon="📁" active={active==='folders'} />
-          <SideItem href={`${base}/models`}           label="Modelos"      icon="🧱" active={active==='models'} />
-          <hr style={{ border:0, borderTop:'1px solid #eee', margin:'8px 0' }}/>
-          <SideItem href={`${base}/versions`}         label="Versões"      icon="🗂️" active={active==='versions'} />
-          <SideItem href={`${base}/admin`}            label="Administrador"icon="⚙️" active={active==='admin'} />
+    <main style={{ padding: 24, fontFamily: 'system-ui' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
+        <aside style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: 12, background: '#fff' }}>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Container</div>
+          <Item id="overview"   href={`/containers/${cid}`}>Visão geral</Item>
+          <Item id="tags"       href={`/containers/${cid}/tags`}>Tags</Item>
+          <Item id="triggers"   href={`/containers/${cid}/triggers`}>Acionadores</Item>
+          <Item id="variables"  href={`/containers/${cid}/variables`}>Variáveis</Item>
+          <Item id="folders"    href={`/containers/${cid}/folders`}>Pastas</Item>
+          <Item id="models"     href={`/containers/${cid}/models`}>Modelos</Item>
+          <div style={{ height: 1, background: '#e5e7eb', margin: '10px 0' }} />
+          <Item id="versions"   href={`/containers/${cid}/versions`}>Versões</Item>
+          <Item id="admin"      href={`/containers/${cid}/admin`}>Administrador</Item>
         </aside>
-        <main>{children}</main>
+
+        <section style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: 16, background: '#fff' }}>
+          {children}
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
 
 export function Card({ title, right, children }) {
   return (
-    <section style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:16, marginBottom:16 }}>
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-        <h3 style={{ margin:0 }}>{title}</h3>{right}
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h3 style={{ margin: 0 }}>{title}</h3>
+        {right}
       </div>
       {children}
-    </section>
+    </div>
   );
 }
