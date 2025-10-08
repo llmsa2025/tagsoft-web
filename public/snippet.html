@@ -4,38 +4,65 @@
     <meta charset="utf-8"/>
     <title>TagSoft Snippet Demo</title>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto;padding:24px}</style>
+    <style>
+      body{font-family:system-ui,-apple-system,Segoe UI,Roboto;padding:24px}
+      .log{white-space:pre-wrap;background:#f6f6f6;padding:12px;border-radius:8px;margin-top:12px}
+      .ok{color:#0a0}
+      .err{color:#b00}
+    </style>
   </head>
   <body>
     <h1>Demo: Enviando eventos para a API</h1>
-    <p>Abra o console para ver logs. Esta página envia <code>page_view</code> e <code>nota_fiscal_emitida</code>.</p>
+    <p>Esta página envia <code>page_view</code> e <code>nota_fiscal_emitida</code> usando <b>fetch</b> (CORS).</p>
+
+    <div id="status" class="log">—</div>
 
     <script>
-      // Mini TagSoft client inline (MVP)
-      (function (global) {
-        const state = { cfg: null };
-        function init(cfg){ state.cfg = cfg; }
-        async function push(evt){
-          const payload = { ...evt, ts: evt.ts || new Date().toISOString() };
-          try{
-            const ok = navigator.sendBeacon && navigator.sendBeacon(`${state.cfg.endpoint}/v1/ingest`, new Blob([JSON.stringify(payload)], { type:'application/json' }));
-            if (!ok) await fetch(`${state.cfg.endpoint}/v1/ingest`, { method:'POST', headers:{'content-type':'application/json','x-api-key': state.cfg.apiKey}, body: JSON.stringify(payload) });
-            console.log('[TagSoft] sent', payload);
-          }catch(e){ console.error('[TagSoft] error', e); }
+      const params = new URLSearchParams(location.search);
+      const API    = (params.get('api') || 'http://localhost:8787').replace(/\/+$/,'');
+      const KEY    = params.get('key') || 'DEMO_KEY';
+
+      const statusEl = document.getElementById('status');
+      function logOK(msg){ statusEl.innerHTML = '✅ ' + msg; statusEl.className = 'log ok'; }
+      function logERR(msg){ statusEl.innerHTML = '❌ ' + msg; statusEl.className = 'log err'; }
+
+      async function send(evt){
+        const payload = { ...evt, ts: evt.ts || new Date().toISOString() };
+        const res = await fetch(`${API}/v1/ingest`, {
+          method: 'POST',
+          mode: 'cors',
+          credentials: 'omit', // <— evita exigir Access-Control-Allow-Credentials
+          headers: {
+            'content-type': 'application/json',
+            'x-api-key': KEY
+          },
+          body: JSON.stringify(payload),
+          keepalive: true
+        });
+        const text = await res.text();
+        if (!res.ok) throw new Error(text || res.status+' '+res.statusText);
+        console.log('[TagSoft] sent', payload);
+      }
+
+      (async () => {
+        try {
+          // evento 1
+          await send({ event: 'page_view', user: { id: 'u1' }, context: { screen: 'snippet_demo' } });
+          // evento 2
+          setTimeout(async () => {
+            try {
+              await send({ event: 'nota_fiscal_emitida', user: { id: 'u1', role: 'faturista' }, biz: { valor: 2380.50, itens: 3 } });
+              logOK('Eventos enviados para ' + API + ' com sucesso.');
+            } catch(e) {
+              logERR('Falha no segundo evento: ' + e.message);
+            }
+          }, 800);
+        } catch(e) {
+          logERR('Falha no primeiro evento: ' + e.message + '\\nAPI=' + API);
         }
-        global.TagSoft = { init, push };
-      })(window);
-
-      // Configure here:
-      const API_URL = (new URLSearchParams(location.search)).get('api') || 'http://localhost:8787';
-      const API_KEY = (new URLSearchParams(location.search)).get('key') || 'DEMO_KEY';
-      TagSoft.init({ endpoint: API_URL, apiKey: API_KEY });
-
-      TagSoft.push({ event: 'page_view', user: { id: 'u1' }, context: { screen: 'snippet_demo' } });
-      setTimeout(() => {
-        TagSoft.push({ event: 'nota_fiscal_emitida', user: { id: 'u1', role: 'faturista' }, biz: { valor: 2380.50, itens: 3 } });
-      }, 1000);
+      })();
     </script>
-    <p style="margin-top:16px">Dica: você pode passar <code>?api=SEU_API_URL&key=SUA_CHAVE</code> na URL para apontar para sua API no Railway.</p>
+
+    <p style="margin-top:16px">Dica: passe <code>?api=URL&key=API_KEY</code> na URL para apontar para sua API.</p>
   </body>
 </html>
