@@ -1,7 +1,7 @@
 // pages/containers/[id].js
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import ContainerLayout, { Card } from '../../componentes/ContainerLayout'; // ajuste o caminho se usa "components"
+import ContainerLayout, { Card } from '../../components/ContainerLayout'; // ajuste o caminho se usa "components"
 import { api } from '../../lib/api';
 
 export default function ContainerOverview() {
