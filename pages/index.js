@@ -1,7 +1,7 @@
 // pages/containers/index.js
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import STMLayout, { Card } from '../../componentes/STMLayout'; // ajuste para "../../components/STMLayout" se sua pasta for "components"
+import STMLayout, { Card } from '../../components/STMLayout'; // ajuste para "../../components/STMLayout" se sua pasta for "components"
 import { api } from '../../lib/api';
 
 export default function ContainersIndex() {
