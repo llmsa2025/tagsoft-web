@@ -1,6 +1,6 @@
 // pages/index.js
 import { useEffect, useState } from 'react';
-import STMLayout, { Card } from '../componentes/STMLayout';
+import STMLayout, { Card } from '../components/STMLayout';
 import { api } from '../lib/api';
 
 export default function Dashboard() {
