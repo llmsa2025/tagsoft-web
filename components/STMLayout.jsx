@@ -1,9 +1,10 @@
 // components/STMLayout.js
 // Layout base. Quando hideSidebar=true, não renderiza o menu lateral
-// e o conteúdo ocupa a largura toda.
+// e o conteúdo ocupa toda a largura.
+//
+// Comentários e rótulos em PT-BR; código em EN.
 
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 
 export function Card({ title, right, children }) {
   return (
@@ -26,7 +27,6 @@ export default function STMLayout({
   active,            // "overview" | "containers" | "accounts" | "versions" | "admin"
   hideSidebar=false, // quando true, não mostra o menu lateral
 }) {
-  const router = useRouter();
 
   const NavLink = ({ href, label, id }) => {
     const isActive = active === id;
@@ -46,6 +46,7 @@ export default function STMLayout({
 
   return (
     <div style={{ padding:'24px 20px' }}>
+      {/* Título global (apenas 1x) */}
       <div style={{ fontWeight:700, marginBottom:12 }}>TagSoft — STM v1.0</div>
 
       <div style={{
@@ -66,9 +67,8 @@ export default function STMLayout({
           </div>
         )}
 
-        <div>
-          {children}
-        </div>
+        {/* Conteúdo */}
+        <div>{children}</div>
       </div>
     </div>
   );
