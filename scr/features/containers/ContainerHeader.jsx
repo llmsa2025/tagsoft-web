@@ -1,34 +1,81 @@
-import { useRouter } from 'next/router';
-
-/** Cabeçalho do contêiner (voltar, dropdown, busca, avatar fake) */
-export default function ContainerHeader({ container }) {
-  const router = useRouter();
-
+// src/features/containers/ContainerHeader.jsx
+/**
+ * Cabeçalho dentro do ambiente da container
+ * - Botão voltar
+ * - Dropdown para escolher container
+ * - Campo de busca (somente UI)
+ * - Avatar placeholder
+ */
+export default function ContainerHeader({
+  containers = [],
+  currentContainer,
+  onBack,
+  onSelectContainer,
+}) {
   return (
-    <div style={{
-      display:'flex', gap:10, alignItems:'center', padding:8,
-      border:'1px solid #eee', borderRadius:12, background:'#fff'
-    }}>
-      <button onClick={()=>router.push('/')}
-              style={{ padding:'6px 10px', borderRadius:10, background:'#f3f4f6', border:'1px solid #e5e7eb' }}>
-        ← Voltar
-      </button>
+    <div style={header}>
+      <button onClick={onBack} style={btnBack}>← Voltar</button>
 
       <select
-        value={container?.name ? `${container.name} — ${container.type} • v${container.version}` : ''}
-        onChange={()=>{}}
-        style={{ padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:10, minWidth:260 }}
+        value={currentContainer?.container_id || ""}
+        onChange={(e) => onSelectContainer?.(e.target.value)}
+        style={select}
       >
-        <option>{container?.name} — {container?.type} • v{container?.version}</option>
+        {containers.map(ct => (
+          <option key={ct.container_id} value={ct.container_id}>
+            {ct.name} — {ct.type} • v{ct.version}
+          </option>
+        ))}
       </select>
 
-      <div style={{ marginLeft:'auto', display:'flex', gap:8, alignItems:'center' }}>
-        <input placeholder="Pesquisar…" style={{ padding:'6px 10px', border:'1px solid #e5e7eb', borderRadius:10, width:240 }}/>
-        <div style={{
-          width:32, height:32, borderRadius:'50%', background:'#111827', color:'#fff',
-          display:'grid', placeItems:'center', fontSize:12
-        }}>U</div>
-      </div>
+      <div style={{ flex: 1 }} />
+
+      <input placeholder="Pesquisar…" style={search} />
+      <div style={avatar}>U</div>
     </div>
   );
 }
+
+const header = {
+  display: "flex",
+  gap: 12,
+  alignItems: "center",
+  padding: "8px 12px",
+  border: "1px solid #e5e7eb",
+  borderRadius: 12,
+  background: "#fff",
+};
+
+const btnBack = {
+  border: "1px solid #e5e7eb",
+  background: "#fff",
+  padding: "8px 10px",
+  borderRadius: 10,
+  cursor: "pointer",
+};
+
+const select = {
+  border: "1px solid #e5e7eb",
+  borderRadius: 10,
+  padding: "8px 10px",
+  minWidth: 260,
+};
+
+const search = {
+  border: "1px solid #e5e7eb",
+  borderRadius: 10,
+  padding: "8px 10px",
+  minWidth: 240,
+};
+
+const avatar = {
+  width: 32,
+  height: 32,
+  borderRadius: "50%",
+  background: "#111827",
+  color: "#fff",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 700,
+};
