@@ -92,7 +92,7 @@ export default function AccountsPage() {
   }
 
   return (
-    <STMLayout active="accounts">
+    <STMLayout active="accounts" hideSidebar>
       <Card
         title="Contas"
         right={
