@@ -1,12 +1,12 @@
 // pages/_app.js
-// Aplica o AppLayout globalmente.
+import "@/styles.css";
 
-import AppLayout from "../components/AppLayout";
-
-export default function MyApp({ Component, pageProps }) {
+export default function App({ Component, pageProps }) {
   return (
-    <AppLayout>
+    <div style={{ background: "#f8fafc", minHeight: "100vh", color: "#111827" }}>
+      <div style={{ padding: 16, fontWeight: 800 }}>TagSoft — STM v1.0</div>
       <Component {...pageProps} />
-    </AppLayout>
+      <div style={{ height: 24 }} />
+    </div>
   );
 }
