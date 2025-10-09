@@ -1,74 +1,90 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { upsertAccount, upsertContainer } from '../../lib/api';
-import { required } from '../../lib/validation';
+// src/features/accounts/CreateAccountSlide.jsx
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { upsertAccount, upsertContainer } from "@/lib/api";
 
 /**
- * Slide para criar Conta + 1º Contêiner.
- * Ao salvar: cria conta, cria container e redireciona para /containers/:id
+ * Slide lateral para criar uma nova conta e o 1º container.
  */
-export default function CreateAccountSlide({ open, onClose }) {
+export default function CreateAccountSlide({ onClose, onCreated }) {
   const router = useRouter();
-  const [name, setName] = useState('Minha empresa');
-  const [containerName, setContainerName] = useState('Meu Container');
-  const [type, setType] = useState('web');
+  const [name, setName] = useState("Minha empresa");
+  const [containerName, setContainerName] = useState("Minha Container");
+  const [type, setType] = useState("web");
   const [saving, setSaving] = useState(false);
-
-  if (!open) return null;
 
   async function handleSave() {
     try {
       setSaving(true);
-      required(name, 'Informe o nome da conta');
-      required(containerName, 'Informe o nome do contêiner');
-
-      const account_id = 'acc_' + Math.random().toString(36).slice(2, 8);
+      const account_id = `acc_${Math.random().toString(36).slice(2, 8)}`;
       await upsertAccount({ account_id, name });
 
-      const container_id = 'ct_' + Math.random().toString(36).slice(2, 8);
+      const container_id = `ct_${Math.random().toString(36).slice(2, 10)}`;
       await upsertContainer({
         container_id,
-        account_id,
         name: containerName,
-        type: type || 'web',
+        account_id,
+        type, // 'web' | 'server'
         version: 1,
       });
 
-      onClose?.();
-      router.push(`/containers/${container_id}`);
+      onCreated?.({
+        account: { account_id, name },
+        container: { container_id, name: containerName, account_id, type, version: 1 },
+      });
     } catch (e) {
-      alert(e.message);
+      alert(e.message || "Erro ao salvar");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <aside style={styles.aside}>
-      <div style={styles.panel}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+    <aside style={slideRoot}>
+      <div style={slidePanel}>
+        <div style={slideHeader}>
           <b>Nova conta / contêiner</b>
-          <button onClick={onClose} style={styles.xbtn}>×</button>
+          <button onClick={onClose} style={iconBtn}>✕</button>
         </div>
 
-        <label style={styles.label}>Nome da conta</label>
-        <input style={styles.input} value={name} onChange={e=>setName(e.target.value)} />
+        <div style={{ display: "grid", gap: 12 }}>
+          <label style={label}>
+            Nome da conta
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={input}
+              placeholder="Ex.: Minha empresa"
+            />
+          </label>
 
-        <label style={styles.label}>Nome do contêiner</label>
-        <input style={styles.input} value={containerName} onChange={e=>setContainerName(e.target.value)} />
+          <label style={label}>
+            Nome do contêiner
+            <input
+              value={containerName}
+              onChange={(e) => setContainerName(e.target.value)}
+              style={input}
+              placeholder="Ex.: Site principal"
+            />
+          </label>
 
-        <label style={styles.label}>Tipo do contêiner</label>
-        <select style={styles.input} value={type} onChange={e=>setType(e.target.value)}>
-          <option value="web">Web</option>
-          <option value="server">Server</option>
-          <option value="ios">iOS</option>
-          <option value="android">Android</option>
-        </select>
+          <label style={label}>
+            Tipo do contêiner
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              style={input}
+            >
+              <option value="web">Web</option>
+              <option value="server">Server</option>
+            </select>
+          </label>
+        </div>
 
-        <div style={{ display:'flex', gap:8, marginTop:16 }}>
-          <button onClick={onClose} style={styles.btnGhost}>Cancelar</button>
-          <button onClick={handleSave} disabled={saving} style={styles.btnPrimary}>
-            {saving ? 'Salvando…' : 'Salvar e abrir'}
+        <div style={slideFooter}>
+          <button onClick={onClose} style={btnGhost}>Cancelar</button>
+          <button onClick={handleSave} disabled={saving} style={btnPrimary}>
+            {saving ? "Salvando…" : "Salvar"}
           </button>
         </div>
       </div>
@@ -76,16 +92,59 @@ export default function CreateAccountSlide({ open, onClose }) {
   );
 }
 
-const styles = {
-  aside: {
-    position:'fixed', inset:0, background:'rgba(0,0,0,.25)', display:'flex', justifyContent:'flex-end', zIndex:50
-  },
-  panel: {
-    width:380, background:'#fff', height:'100%', padding:16, boxShadow:'-8px 0 20px rgba(0,0,0,.08)'
-  },
-  xbtn: { background:'transparent', border:'none', fontSize:22, cursor:'pointer' },
-  label: { display:'block', fontSize:12, opacity:.7, marginTop:10, marginBottom:4 },
-  input: { width:'100%', padding:'8px 10px', border:'1px solid #e5e7eb', borderRadius:8 },
-  btnGhost: { padding:'8px 12px', borderRadius:10, background:'#f3f4f6', border:'1px solid #e5e7eb' },
-  btnPrimary: { padding:'8px 12px', borderRadius:10, background:'#e9d5ff', border:'1px solid #d8b4fe', cursor:'pointer' },
+const slideRoot = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,.25)",
+  display: "flex",
+  justifyContent: "flex-end",
+  zIndex: 50,
+};
+
+const slidePanel = {
+  width: 420,
+  background: "#fff",
+  height: "100%",
+  padding: 20,
+  display: "grid",
+  gridTemplateRows: "auto 1fr auto",
+  gap: 16,
+  boxShadow: "-8px 0 20px rgba(0,0,0,.08)",
+};
+
+const slideHeader = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+
+const iconBtn = {
+  border: "none",
+  background: "transparent",
+  fontSize: 18,
+  cursor: "pointer",
+};
+
+const label = { display: "grid", gap: 6, fontWeight: 600, color: "#111827" };
+const input = {
+  border: "1px solid #e5e7eb",
+  borderRadius: 10,
+  padding: "10px 12px",
+};
+
+const slideFooter = { display: "flex", justifyContent: "flex-end", gap: 8 };
+const btnGhost = {
+  border: "1px solid #e5e7eb",
+  background: "#fff",
+  padding: "10px 12px",
+  borderRadius: 10,
+  cursor: "pointer",
+};
+const btnPrimary = {
+  background: "#4f46e5",
+  color: "#fff",
+  border: "none",
+  padding: "10px 14px",
+  borderRadius: 10,
+  cursor: "pointer",
 };
