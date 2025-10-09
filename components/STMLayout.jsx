@@ -1,69 +1,75 @@
 // components/STMLayout.js
-// Layout base do app. Agora suporta noSidebar para telas em tela cheia.
+// Layout base. Quando hideSidebar=true, não renderiza o menu lateral
+// e o conteúdo ocupa a largura toda.
 
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export function Card({ title, right, children }) {
   return (
-    <div style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12 }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', borderBottom:'1px solid #f1f5f9' }}>
-        <div style={{ fontWeight:700 }}>{title}</div>
-        {right}
-      </div>
-      <div style={{ padding:16 }}>{children}</div>
+    <div style={{
+      background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:16
+    }}>
+      {(title || right) && (
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+          {title ? <div style={{ fontWeight:700 }}>{title}</div> : <div />}
+          {right || null}
+        </div>
+      )}
+      {children}
     </div>
   );
 }
 
-export default function STMLayout({ active, noSidebar = false, children }) {
-  return (
-    <div style={{ padding: 24 }}>
-      <div
+export default function STMLayout({
+  children,
+  active,            // "overview" | "containers" | "accounts" | "versions" | "admin"
+  hideSidebar=false, // quando true, não mostra o menu lateral
+}) {
+  const router = useRouter();
+
+  const NavLink = ({ href, label, id }) => {
+    const isActive = active === id;
+    return (
+      <Link
+        href={href}
         style={{
-          display: 'grid',
-          gridTemplateColumns: noSidebar ? '1fr' : '300px 1fr',
-          gap: 24
+          display:'block', padding:'14px 16px', border:'1px solid #e5e7eb',
+          borderRadius:10, background: isActive ? '#0f172a' : '#fff',
+          color: isActive ? '#fff' : '#000', textDecoration:'none'
         }}
       >
-        {!noSidebar && (
-          <aside style={{ background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:16 }}>
-            <div style={{ fontWeight:700, marginBottom:12 }}>TagSoft — STM v1.0</div>
-            <nav style={{ display:'grid', gap:10 }}>
-              <Link href="/" legacyBehavior>
-                <a style={linkStyle(active === 'dashboard')}>Visão geral</a>
-              </Link>
-              <Link href="/containers" legacyBehavior>
-                <a style={linkStyle(active === 'containers')}>Containers</a>
-              </Link>
-              <Link href="/accounts" legacyBehavior>
-                <a style={linkStyle(active === 'accounts')}>Contas</a>
-              </Link>
-              <Link href="/versions" legacyBehavior>
-                <a style={linkStyle(active === 'versions')}>Versões</a>
-              </Link>
-              <Link href="/admin" legacyBehavior>
-                <a style={linkStyle(active === 'admin')}>Administrador</a>
-              </Link>
-            </nav>
-          </aside>
+        {label}
+      </Link>
+    );
+  };
+
+  return (
+    <div style={{ padding:'24px 20px' }}>
+      <div style={{ fontWeight:700, marginBottom:12 }}>TagSoft — STM v1.0</div>
+
+      <div style={{
+        display:'grid',
+        gridTemplateColumns: hideSidebar ? '1fr' : '320px 1fr',
+        gap:20
+      }}>
+        {!hideSidebar && (
+          <div style={{ alignSelf:'start', position:'sticky', top:20 }}>
+            <div style={{ fontWeight:800, marginBottom:10 }}>TagSoft — STM v1.0</div>
+            <div style={{ display:'grid', gap:12 }}>
+              <NavLink id="overview"   href="/"            label="Visão geral" />
+              <NavLink id="containers" href="/containers"  label="Containers" />
+              <NavLink id="accounts"   href="/accounts"    label="Contas" />
+              <NavLink id="versions"   href="/versions"    label="Versões" />
+              <NavLink id="admin"      href="/admin"       label="Administrador" />
+            </div>
+          </div>
         )}
 
-        <main>{children}</main>
+        <div>
+          {children}
+        </div>
       </div>
     </div>
   );
-}
-
-function linkStyle(active) {
-  return {
-    display:'block',
-    padding:'12px 14px',
-    border:'1px solid #e5e7eb',
-    borderRadius:10,
-    textDecoration:'none',
-    color:'#0f172a',
-    background: active ? '#0f172a' : '#fff',
-    color: active ? '#fff' : '#0f172a',
-    fontWeight:500
-  };
 }
