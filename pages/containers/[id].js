@@ -1,115 +1,111 @@
 // pages/containers/[id].js
-// Detalhe da container em tela cheia (sem menu lateral).
-import { useEffect, useMemo, useState } from 'react';
+// Página do contêiner em tela cheia (sem menu lateral).
+//
+// - Botão Voltar => /accounts
+// - Seletor de contêiner (placeholder por enquanto)
+// - Tabs locais: overview/tags/acionadores/variáveis/pastas/modelos/versões/admin
+//
+// Comentários e rótulos em PT-BR; código em EN.
+
 import { useRouter } from 'next/router';
+import { useEffect, useMemo, useState } from 'react';
 import STMLayout, { Card } from '../../components/STMLayout';
-import { getContainer, listContainers } from '../../lib/api';
+import { getContainer } from '../../lib/api'; // garante que o path está correto
 
 const TABS = [
-  { key:'overview',  label:'Visão geral' },
-  { key:'tags',      label:'Tags' },
-  { key:'triggers',  label:'Acionadores' },
-  { key:'variables', label:'Variáveis' },
-  { key:'folders',   label:'Pastas' },
-  { key:'models',    label:'Modelos' },
-  { key:'versions',  label:'Versões' },
-  { key:'admin',     label:'Administrador' },
+  { key:'overview',   label:'Visão geral' },
+  { key:'tags',       label:'Tags' },
+  { key:'triggers',   label:'Acionadores' },
+  { key:'variables',  label:'Variáveis' },
+  { key:'folders',    label:'Pastas' },
+  { key:'models',     label:'Modelos' },
+  { key:'versions',   label:'Versões' },
+  { key:'admin',      label:'Administrador' },
 ];
 
-export default function ContainerScreen() {
+export default function ContainerPage() {
   const router = useRouter();
   const { id, tab } = router.query;
 
-  const [container, setContainer] = useState(null);
-  const [all, setAll] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const currentTab = useMemo(() => {
-    const k = (tab || 'overview').toString();
-    return TABS.find(t => t.key === k) ? k : 'overview';
+  const activeTab = useMemo(() => {
+    const k = typeof tab === 'string' ? tab : 'overview';
+    return TABS.some(t => t.key === k) ? k : 'overview';
   }, [tab]);
 
+  // Carrega dados do contêiner
   useEffect(() => {
     if (!id) return;
-    let mounted = true;
     (async () => {
       setLoading(true);
       try {
-        const [c, list] = await Promise.all([
-          getContainer(id),
-          listContainers()
-        ]);
-        if (mounted) { setContainer(c); setAll(list); }
+        const data = await getContainer(id);
+        setItem(data);
       } catch (e) {
-        alert(e.message || 'Falha ao carregar container');
-      } finally { if (mounted) setLoading(false); }
+        alert(e.message);
+      } finally {
+        setLoading(false);
+      }
     })();
-    return () => { mounted = false; };
   }, [id]);
 
-  function goToTab(next) {
-    router.replace(
-      { pathname: `/containers/${encodeURIComponent(id)}`, query: { tab: next } },
-      undefined,
-      { shallow: true }
-    );
-  }
+  // Troca de aba (mantém a rota atual com ?tab=)
+  const goTab = (k) => {
+    router.replace({ pathname: `/containers/${id}`, query: { tab:k } }, undefined, { shallow:true });
+  };
 
   return (
-    <STMLayout active="containers" noSidebar>
-      {/* Barra superior */}
-      <div
-        style={{
-          display:'flex', gap:12, alignItems:'center',
-          marginBottom:14, background:'#fff', border:'1px solid #e5e7eb', borderRadius:12, padding:12
-        }}
-      >
+    <STMLayout active="containers" hideSidebar>
+      {/* Toolbar superior */}
+      <div style={{ display:'flex', gap:12, alignItems:'center', marginBottom:16, flexWrap:'wrap' }}>
         <button
-          onClick={() => router.push('/accounts')}
-          style={{ padding:'8px 10px', borderRadius:8, border:'1px solid #000', background:'#f1f5f9' }}
+          onClick={()=>router.push('/accounts')}
+          style={{
+            padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, background:'#fff',
+            cursor:'pointer'
+          }}
+          title="Voltar para Contas"
         >
           ← Voltar
         </button>
 
+        {/* Seletor de contêiner (placeholder) */}
         <select
-          value={container?.container_id || ''}
-          onChange={(e) => router.push(`/containers/${encodeURIComponent(e.target.value)}?tab=${currentTab}`)}
-          style={{ minWidth:280, padding:'8px 10px', border:'1px solid #e5e7eb', borderRadius:8 }}
+          value={id || ''}
+          onChange={(e)=>router.push(`/containers/${e.target.value}?tab=${activeTab}`)}
+          style={{ padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8, minWidth:260 }}
         >
-          {all.map(c => (
-            <option key={c.container_id} value={c.container_id}>
-              {c.name} — {c.type} • v{c.version}
-            </option>
-          ))}
+          <option value={id || ''}>
+            {item ? `${item.name} — ${item.type} • v${item.version}` : 'Carregando…'}
+          </option>
+          {/* No futuro: popular com outros contêineres da conta */}
         </select>
 
-        <div style={{ marginLeft:'auto', display:'flex', gap:10, alignItems:'center' }}>
-          <input
-            placeholder="Pesquisar…"
-            style={{ padding:'8px 10px', border:'1px solid #e5e7eb', borderRadius:8, width:260 }}
-          />
-          <div
-            style={{
-              width:32, height:32, borderRadius:'9999px', background:'#0f172a',
-              color:'#fff', display:'grid', placeItems:'center', fontWeight:700
-            }}
-          >
-            U
-          </div>
-        </div>
+        {/* Busca local (placeholder) */}
+        <input
+          placeholder="Pesquisar…"
+          style={{ flex:'1 1 260px', minWidth:260, padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8 }}
+        />
+
+        {/* Avatar do usuário (placeholder) */}
+        <div style={{
+          width:34, height:34, borderRadius:'50%', background:'#0f172a', color:'#fff',
+          display:'grid', placeItems:'center', fontWeight:700
+        }}>U</div>
       </div>
 
-      {/* Abas */}
-      <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:12 }}>
+      {/* Tabs locais */}
+      <div style={{ display:'flex', gap:10, marginBottom:12, flexWrap:'wrap' }}>
         {TABS.map(t => (
           <button
             key={t.key}
-            onClick={() => goToTab(t.key)}
+            onClick={()=>goTab(t.key)}
             style={{
-              padding:'8px 12px', borderRadius:10, border:'1px solid #e5e7eb',
-              background: currentTab === t.key ? '#0f172a' : '#fff',
-              color: currentTab === t.key ? '#fff' : '#0f172a',
-              fontWeight:500
+              padding:'8px 12px', border:'1px solid #e5e7eb', borderRadius:8,
+              background: activeTab === t.key ? '#0f172a' : '#fff',
+              color: activeTab === t.key ? '#fff' : '#000', cursor:'pointer'
             }}
           >
             {t.label}
@@ -117,29 +113,31 @@ export default function ContainerScreen() {
         ))}
       </div>
 
-      {/* Conteúdo */}
-      <Card title={container ? `${container.name} — v${container.version}` : 'Carregando…'}>
+      {/* Conteúdo principal */}
+      <Card>
         {loading && <div style={{ opacity:.6 }}>Carregando…</div>}
-        {!loading && !container && <div style={{ opacity:.6 }}>Contêiner não encontrado.</div>}
+        {!loading && !item && <div style={{ opacity:.6 }}>Contêiner não encontrado.</div>}
 
-        {!!container && currentTab === 'overview' && (
+        {!loading && item && activeTab === 'overview' && (
           <div>
-            <div><b>ID:</b> {container.container_id}</div>
-            <div><b>Nome:</b> {container.name}</div>
-            <div><b>Versão:</b> {container.version}</div>
-
-            <h4 style={{ marginTop:12 }}>Resumo</h4>
+            <div style={{ fontWeight:800, marginBottom:12 }}>
+              {item.name} — v{item.version}
+            </div>
+            <div><b>ID:</b> {item.container_id}</div>
+            <div><b>Nome:</b> {item.name}</div>
+            <div><b>Versão:</b> {item.version}</div>
+            <div style={{ marginTop:12, fontWeight:700 }}>Resumo</div>
             <ul>
-              <li><b>Variáveis:</b> {container.variables?.length || 0}</li>
-              <li><b>Tags:</b> {container.tags?.length || 0}</li>
-              <li><b>Acionadores:</b> {container.triggers?.length || 0}</li>
+              <li><b>Variáveis:</b> {item.variables?.length || 0}</li>
+              <li><b>Tags:</b> {item.tags?.length || 0}</li>
+              <li><b>Acionadores:</b> {item.triggers?.length || 0}</li>
             </ul>
           </div>
         )}
 
-        {!!container && currentTab !== 'overview' && (
-          <div style={{ opacity:.7 }}>
-            <i>Em breve: conteúdo da aba “{TABS.find(t=>t.key===currentTab)?.label}”.</i>
+        {!loading && item && activeTab !== 'overview' && (
+          <div style={{ opacity:.8 }}>
+            TODO: conteúdo da aba <b>{TABS.find(t=>t.key===activeTab)?.label}</b>.
           </div>
         )}
       </Card>
