@@ -1,5 +1,5 @@
 // pages/accounts/index.js
-// Tela de Contas (plana): lista contas e permite criar conta/contêiner
+// Tela de Contas (plana1): lista contas e permite criar conta/contêiner
 // UI em português; código em inglês.
 
 import { useEffect, useState } from 'react';
