@@ -1,27 +1,34 @@
-export default function ContainerTabs({ active='overview', onChange }) {
-  const tabs = [
-    { id:'overview', label:'Visão geral' },
-    { id:'tags',      label:'Tags' },
-    { id:'triggers',  label:'Acionadores' },
-    { id:'vars',      label:'Variáveis' },
-    { id:'folders',   label:'Pastas' },
-    { id:'templates', label:'Modelos' },
-    { id:'versions',  label:'Versões' },
-    { id:'admin',     label:'Administrador' },
-  ];
+// src/features/containers/ContainerTabs.jsx
+/**
+ * Abas de navegação dentro da container.
+ * A navegação é externa (pai controla a URL), então aqui apenas renderizamos os botões.
+ */
+export default function ContainerTabs({ tabs, active, onChange }) {
   return (
-    <div style={{ display:'flex', gap:8, margin:'10px 0 14px' }}>
+    <div style={tabsWrap}>
       {tabs.map(t => (
-        <button key={t.id}
-          onClick={()=>onChange?.(t.id)}
-          style={{
-            padding:'6px 10px', borderRadius:10,
-            border: active===t.id ? '1px solid #a78bfa' : '1px solid #e5e7eb',
-            background: active===t.id ? '#ede9fe' : '#fff'
-          }}>
+        <button
+          key={t.key}
+          onClick={() => onChange?.(t.key)}
+          style={{ ...tabBtn, ...(active === t.key ? tabBtnActive : {}) }}
+        >
           {t.label}
         </button>
       ))}
     </div>
   );
 }
+
+const tabsWrap = { display: "flex", gap: 8, marginTop: 12 };
+const tabBtn = {
+  border: "1px solid #e5e7eb",
+  background: "#fff",
+  padding: "8px 12px",
+  borderRadius: 10,
+  cursor: "pointer",
+};
+const tabBtnActive = {
+  background: "#111827",
+  color: "#fff",
+  borderColor: "#111827",
+};
