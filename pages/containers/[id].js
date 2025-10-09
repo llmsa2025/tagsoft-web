@@ -1,8 +1,7 @@
 // pages/containers/[id].js
-import dynamic from "next/dynamic";
+import ContainerScreen from '@/features/containers/ContainerScreen';
 
-const ContainerScreen = dynamic(() => import("@/features/containers/ContainerScreen"), { ssr: false });
-
-export default function ContainerById() {
+export default function ContainerPage() {
+  // O ContainerScreen usa useRouter internamente para ler o id
   return <ContainerScreen />;
 }
