@@ -4,8 +4,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import ContainerLayout, { Card } from '../../../components/ContainerLayout';
-import { api } from '../../../lib/api';
+import ContainerLayout, { Card } from '../../components/ContainerLayout';
+import { api } from '../../lib/api';
 
 export default function ContainerOverviewPage() {
   const router = useRouter();
